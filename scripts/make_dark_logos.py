@@ -6,8 +6,8 @@ Make light ("negative") versions of the partner logos for the dark home page.
 The source logos in public/images/ are dark marks on white. This writes
 public/images/dark/<name>.png with a transparent background:
 
-  * Tampere University, Research Council of Finland: the one-colour mark
-    becomes white.
+  * Tampere University, Research Council of Finland, T-Winning Spaces 2035:
+    the one-colour mark becomes white.
   * Funded by the EU: the text becomes white, while the flag keeps its
     official colours and gets the thin white border that the EU emblem rules
     ask for on dark backgrounds (1/25 of the flag height).
@@ -22,6 +22,12 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "public" / "images"
 OUT = SRC / "dark"
 MAX_WIDTH = 1200  # plenty for the ~260 px wide cards on high-density screens
+
+
+def on_white(path: Path) -> np.ndarray:
+    """The logo as RGB on white paper (transparent areas become white)."""
+    img = Image.open(path).convert("RGBA")
+    return np.asarray(Image.alpha_composite(Image.new("RGBA", img.size, "white"), img).convert("RGB"))
 
 
 def ink(rgb: np.ndarray) -> np.ndarray:
@@ -64,8 +70,8 @@ def save(img: Image.Image, name: str):
 
 
 def main():
-    for name in ("Tampere_uni_logo.png", "logo2.png"):
-        rgb = np.asarray(Image.open(SRC / name).convert("RGB"))
+    for name in ("Tampere_uni_logo.png", "logo2.png", "T-winning_logo_green.png"):
+        rgb = on_white(SRC / name)
         full_at = np.percentile(ink(rgb)[ink(rgb) > 40], 50)  # the mark's own colour -> fully opaque
         save(crop_to_content(Image.fromarray(to_white(rgb, full_at)), pad=4), name)
 

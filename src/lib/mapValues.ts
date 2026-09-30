@@ -48,13 +48,14 @@ export function colorsFor(values: Float64Array, limit: number): (Rgb | null)[] {
 
 // --- formatting -----------------------------------------------------------------
 
-const numberFormat = (decimals: number) =>
-  new Intl.NumberFormat("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: decimals });
+const numberFormat = (decimals: number, fixed: boolean) =>
+  new Intl.NumberFormat("en-GB", { minimumFractionDigits: fixed ? decimals : 0, maximumFractionDigits: decimals });
 
-export function formatValue(value: number, decimals: number, signed = false): string {
+/** `fixed` keeps trailing zeros ("407.0" instead of "407"). */
+export function formatValue(value: number, decimals: number, signed = false, fixed = false): string {
   if (!Number.isFinite(value)) return "n/a";
   const rounded = Number(value.toFixed(decimals));
-  const text = numberFormat(decimals).format(Math.abs(rounded));
+  const text = numberFormat(decimals, fixed).format(Math.abs(rounded));
   if (rounded === 0) return text;
   return `${rounded < 0 ? "−" : signed ? "+" : ""}${text}`;
 }

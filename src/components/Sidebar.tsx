@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
+import { TOOL_AUTHOR } from "../config/credits";
 import { NAVIGATION } from "../config/navigation";
+import { UrbanPhysicsMark } from "./UrbanPhysicsMark";
 
 export function Sidebar({ onNavigate, onClose }: { onNavigate: () => void; onClose: () => void }) {
   return (
@@ -35,9 +37,10 @@ export function Sidebar({ onNavigate, onClose }: { onNavigate: () => void; onClo
       ))}
 
       <div className="sidebar-footer">
-        Urban Physics Research Group
-        <br />
-        Tampere University
+        <UrbanPhysicsMark compact />
+        <p className="sidebar-credit">
+          Tool designed by <strong>{TOOL_AUTHOR}</strong>
+        </p>
       </div>
     </nav>
   );

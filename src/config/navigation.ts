@@ -1,4 +1,4 @@
-import { BAR_PAGES } from "./barCharts";
+import { IMPACTS_PAGE } from "./impacts";
 import { MAP_PAGES } from "./mapPages";
 
 export interface NavLink {
@@ -22,5 +22,5 @@ export const NAVIGATION: NavGroup[] = [
     heading: "Traffic changes",
     links: MAP_PAGES.filter((p) => p.group === "Traffic changes").map((p) => ({ path: p.path, label: p.navLabel })),
   },
-  { heading: "Bar plots", links: BAR_PAGES.map((p) => ({ path: p.path, label: p.navLabel })) },
+  { heading: IMPACTS_PAGE.group, links: [{ path: IMPACTS_PAGE.path, label: IMPACTS_PAGE.navLabel }] },
 ];

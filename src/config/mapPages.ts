@@ -35,7 +35,7 @@ export const MAP_PAGES: MapPageConfig[] = [
     dataset: "emissions",
     title: "CO₂ emissions",
     description:
-      "Change in daily CO₂ emissions in each 250 m grid cell at the selected share of remote workers, compared with today.",
+      "Change in daily transport-related CO₂ emissions in each 250 m grid cell at the selected share of remote workers, compared with today.",
     quantityInSentence: "CO₂ emissions",
     unit: "kg",
     legendUnit: "kg",

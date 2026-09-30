@@ -3,27 +3,30 @@ import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-d
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Sidebar } from "./components/Sidebar";
 import { Spinner } from "./components/Spinner";
-import { BAR_PAGES } from "./config/barCharts";
+import { IMPACTS_PAGE } from "./config/impacts";
 import { MAP_PAGES } from "./config/mapPages";
 import { HomePage } from "./pages/HomePage";
 import { MapSettingsProvider } from "./state/MapSettings";
 
 // Map and chart code is large, so it is only downloaded when such a page is opened
 const MapPage = lazy(() => import("./pages/MapPage").then((m) => ({ default: m.MapPage })));
-const BarChartPage = lazy(() => import("./pages/BarChartPage").then((m) => ({ default: m.BarChartPage })));
+const ImpactsPage = lazy(() => import("./pages/ImpactsPage").then((m) => ({ default: m.ImpactsPage })));
 
 const TITLES: Record<string, string> = {
   "/": "Interactive tool · T-Winning Spaces 2035",
-  ...Object.fromEntries([...MAP_PAGES, ...BAR_PAGES].map((p) => [p.path, `${p.navLabel} · T-Winning Spaces 2035`])),
+  ...Object.fromEntries([...MAP_PAGES, IMPACTS_PAGE].map((p) => [p.path, `${p.navLabel} · T-Winning Spaces 2035`])),
 };
 
-// Old Streamlit-era page addresses still work
+// Older page addresses still work
 const REDIRECTS: Record<string, string> = {
   "/emissions-comparison": "/emissions",
   "/remote-workers-comparison": "/remote-workers",
   "/on-site-workers-comparison": "/on-site-workers",
   "/car-passengers-comparison": "/car-passengers",
   "/transit-passengers-comparison": "/transit-passengers",
+  // the two bar-plot pages, now combined into one
+  "/emission-changes": IMPACTS_PAGE.path,
+  "/health-impact-assessment": IMPACTS_PAGE.path,
 };
 
 function Layout() {
@@ -56,9 +59,7 @@ function Layout() {
               {MAP_PAGES.map((page) => (
                 <Route key={page.path} path={page.path} element={<MapPage key={page.path} page={page} />} />
               ))}
-              {BAR_PAGES.map((page) => (
-                <Route key={page.path} path={page.path} element={<BarChartPage key={page.path} config={page} />} />
-              ))}
+              <Route path={IMPACTS_PAGE.path} element={<ImpactsPage />} />
               {Object.entries(REDIRECTS).map(([from, to]) => (
                 <Route key={from} path={from} element={<Navigate to={to} replace />} />
               ))}

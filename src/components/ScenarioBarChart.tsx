@@ -1,97 +1,90 @@
-import { useEffect, useMemo, useRef } from "react";
-import embed, { type Result, type VisualizationSpec } from "vega-embed";
-import type { Config } from "vega-lite";
-import type { BarChartPageConfig } from "../config/barCharts";
+import { useMemo } from "react";
+import type { VisualizationSpec } from "vega-embed";
+import type { ImpactConfig } from "../config/impacts";
+import { S1_PERCENT, S3_PERCENT } from "../config/scenarios";
+import { DARK_THEME, FONT, INK, MUTED } from "../lib/chartTheme";
+import {
+  changeFromToday,
+  describeChange,
+  formatImpact,
+  selectedValue,
+  STATUS_COLORS,
+  STATUSES,
+  statusOf,
+} from "../lib/impactValues";
+import { useVegaChart } from "../lib/useVegaChart";
 
-// Dark chart theme matching the site (see styles.css tokens)
-const FONT = '"Inter", system-ui, -apple-system, "Segoe UI", sans-serif';
-const INK = "#e8ebf1";
-const MUTED = "#8b93a3";
-const GRID = "rgba(255,255,255,0.07)";
-const REFERENCE_BAR = "#4f5869"; // S1 and S3
-const SELECTED_BAR = "#9085e9"; // the selected share (accent)
+const S1_LABEL = `S1 · ${S1_PERCENT} %`;
+const S3_LABEL = `S3 · ${S3_PERCENT} %`;
 
-const DARK_THEME: Config = {
-  font: FONT,
-  background: "transparent",
-  autosize: { type: "fit", contains: "padding" },
-  axis: {
-    labelFont: FONT,
-    titleFont: FONT,
-    labelFontSize: 12,
-    labelColor: MUTED,
-    titleFontSize: 12,
-    titleFontWeight: 500,
-    titleColor: MUTED,
-    titlePadding: 14,
-    labelPadding: 10,
-    ticks: false,
-    domain: false,
-    gridColor: GRID,
-  },
-  axisX: { grid: false, labelFontSize: 13, labelColor: INK, labelFontWeight: 500 },
-  view: { stroke: "transparent" },
-};
+/**
+ * Three bars: S1, the selected share of remote workers, S3. Green = better
+ * than today, red = worse; the selected bar is drawn solid, S1 and S3 lighter.
+ */
+export function ScenarioBarChart({ impact, percent }: { impact: ImpactConfig; percent: number }) {
+  const labels = [S1_LABEL, `Selected · ${percent.toFixed(1)} %`, S3_LABEL];
+  const rows = [impact.s1, selectedValue(impact, percent), impact.s3].map((value, i) => {
+    const change = changeFromToday(impact, value);
+    return {
+      order: i,
+      Label: labels[i],
+      value,
+      valueText: formatImpact(impact, value, impact.bars.signed),
+      totalText: `${formatImpact(impact, value)}${impact.unit}`,
+      changeText: describeChange(impact, change),
+      status: statusOf(change),
+      emphasis: i === 1 ? "selected" : "reference",
+    };
+  });
 
-const SCENARIOS = ["S1 · 0 %", "Selected", "S3 · 47.3 %"] as const;
-
-interface ScenarioBarChartProps {
-  config: BarChartPageConfig;
-  /** Values for S1, the selected percentage and S3 */
-  values: [number, number, number];
-  /** Label of the middle bar, e.g. "Selected · 35.0 %" */
-  selectedLabel: string;
-}
-
-/** Three bars: S1, the selected share of remote workers, S3. */
-export function ScenarioBarChart({ config, values, selectedLabel }: ScenarioBarChartProps) {
-  const container = useRef<HTMLDivElement>(null);
-  const embedded = useRef<Promise<Result> | null>(null);
-
-  const rows = values.map((v, i) => ({
-    Scenario: SCENARIOS[i],
-    Label: i === 1 ? selectedLabel : SCENARIOS[i],
-    [config.field]: v,
-  }));
-  const rowsRef = useRef(rows);
-  rowsRef.current = rows;
-
-  const spec = useMemo<Omit<VisualizationSpec, "data">>(() => {
-    const value = `datum['${config.field}']`;
+  const spec = useMemo<VisualizationSpec>(() => {
+    const { bars, s2 } = impact;
+    const tooltip = [
+      { field: "Label", type: "nominal", title: "Scenario" },
+      // emissions are totals, so also show the total; health values already are the change
+      ...(s2 !== 0 ? [{ field: "totalText", type: "nominal", title: impact.name }] : []),
+      { field: "changeText", type: "nominal", title: "Compared with today" },
+    ];
+    // only on the bar and label layers: a rule layer with an x field would draw one vertical line per bar
+    const x = {
+      field: "Label",
+      type: "nominal",
+      // "min", not the default "sum": only min/max/count survive merging the bar and text layers' domains
+      sort: { field: "order", op: "min" },
+      // "Selected · 35.0 %" on two lines
+      axis: { title: null, labelAngle: 0, labelExpr: "split(datum.label, ' · ')", labelLineHeight: 17 },
+      scale: { paddingInner: 0.45, paddingOuter: 0.35 },
+    };
+    // the "Today's level" label goes on the side whose bar stays below today's level, so it never overlaps a bar
+    const todayLabelAt = impact.s3 < s2 ? { x: "width", align: "right" } : { x: 0, align: "left" };
     return {
       $schema: "https://vega.github.io/schema/vega-lite/v6.json",
+      description: `${bars.title}: ${S1_LABEL} ${formatImpact(impact, impact.s1, bars.signed)}, today ${formatImpact(impact, s2, bars.signed)}, ${S3_LABEL} ${formatImpact(impact, impact.s3, bars.signed)}.`,
       width: "container",
-      height: 420,
-      encoding: {
-        x: {
-          field: "Scenario",
-          type: "nominal",
-          sort: [...SCENARIOS],
-          axis: { title: null, labelAngle: 0 },
-          scale: { paddingInner: 0.45, paddingOuter: 0.3 },
-        },
-      },
+      height: 340,
       layer: [
         {
           mark: { type: "bar", cornerRadiusTopLeft: 6, cornerRadiusTopRight: 6, cornerRadiusBottomLeft: 6, cornerRadiusBottomRight: 6 },
           encoding: {
+            x,
             y: {
-              field: config.field,
+              field: "value",
               type: "quantitative",
-              axis: { title: config.yTitle, tickCount: 6 },
-              scale: { domain: config.yDomain },
+              axis: {
+                title: bars.yTitle,
+                tickCount: 6,
+                ...(bars.signed ? { labelExpr: "datum.value > 0 ? '+' + datum.label : datum.label" } : {}),
+              },
+              scale: { domain: bars.yDomain },
             },
             color: {
-              field: "Scenario",
+              field: "status",
               type: "nominal",
-              scale: { domain: [...SCENARIOS], range: [REFERENCE_BAR, SELECTED_BAR, REFERENCE_BAR] },
+              scale: { domain: STATUSES, range: STATUSES.map((s) => STATUS_COLORS[s]) },
               legend: null,
             },
-            tooltip: config.tooltip.map((t) =>
-              t.field === "Scenario"
-                ? { field: "Label", type: "nominal" as const, title: t.title }
-                : { field: config.field, type: "quantitative" as const, title: t.title, format: config.labelFormat },
-            ),
+            opacity: { condition: { test: "datum.emphasis === 'selected'", value: 1 }, value: 0.5 },
+            tooltip,
           },
         },
         {
@@ -101,46 +94,40 @@ export function ScenarioBarChart({ config, values, selectedLabel }: ScenarioBarC
             fontSize: 15,
             fontWeight: 600,
             color: INK,
-            baseline: { expr: `${value} < 0 ? 'top' : 'bottom'` },
-            dy: { expr: `${value} < 0 ? 8 : -8` },
+            baseline: { expr: "datum.value < 0 ? 'top' : 'bottom'" },
+            dy: { expr: "datum.value < 0 ? 8 : -8" },
           },
           encoding: {
-            y: { field: config.field, type: "quantitative" },
-            text: { field: config.field, type: "quantitative", format: config.labelFormat },
+            x,
+            y: { field: "value", type: "quantitative" },
+            text: { field: "valueText" },
           },
         },
         {
+          data: { values: [{}] },
           mark: { type: "rule", color: "rgba(255,255,255,0.35)", strokeWidth: 1 },
           encoding: { y: { datum: 0 } },
         },
+        // today's level (for health it is the zero line itself)
+        ...(s2 !== 0
+          ? [
+              {
+                data: { values: [{}] },
+                mark: { type: "rule", color: "rgba(255,255,255,0.5)", strokeWidth: 1, strokeDash: [4, 4] },
+                encoding: { y: { datum: s2 } },
+              },
+            ]
+          : []),
+        {
+          data: { values: [{}] },
+          mark: { type: "text", text: "Today's level", ...todayLabelAt, baseline: "bottom", dy: -5, font: FONT, fontSize: 11, color: MUTED },
+          encoding: { y: { datum: s2 } },
+        },
       ],
       config: DARK_THEME,
-    };
-  }, [config]);
+    } as VisualizationSpec;
+  }, [impact]);
 
-  // Build the chart once per page with the current values ...
-  useEffect(() => {
-    if (!container.current) return;
-    const el = container.current;
-    const full = { ...spec, data: { name: "table", values: rowsRef.current } } as VisualizationSpec;
-    // wait for the web font so Vega measures the axis labels with it
-    const result = document.fonts.ready.then(() =>
-      embed(el, full, { actions: false, renderer: "svg", tooltip: { theme: "dark" } }),
-    );
-    embedded.current = result;
-    return () => {
-      embedded.current = null;
-      result.then((r) => r.finalize()).catch(() => {});
-    };
-  }, [spec]);
-
-  // ... and only swap the data when the slider moves
-  const key = values.join("|") + selectedLabel;
-  useEffect(() => {
-    embedded.current
-      ?.then(({ view }) => view.data("table", rowsRef.current).runAsync())
-      .catch((e) => console.error(e));
-  }, [key]);
-
+  const container = useVegaChart(spec, "table", rows);
   return <div className="chart" ref={container} />;
 }
