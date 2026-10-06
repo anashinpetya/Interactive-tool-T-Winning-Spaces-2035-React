@@ -195,12 +195,14 @@ button {
   color: var(--text-2);
 }
 
-/* Urban Physics Research Group text logo: bold capitals on Tampere University violet */
+/* Urban Physics Research Group logo on Tampere University violet */
 .up-mark {
+  --logo-height: 50px;
   display: inline-flex;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  padding: 14px 20px;
+  padding: 16px 20px 14px;
   border-radius: 14px;
   background: var(--tuni);
   color: #fff;
@@ -217,45 +219,34 @@ button {
   transform: translateY(-2px);
 }
 
-.up-mark-name {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-}
-
-.up-mark-sub {
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+/* the logo image has empty space on its right (211 of 2000 px) and bottom (32 of 705 px); the negative
+   margins keep that transparent space out of the layout so the logo sits evenly in the chip */
+.up-mark-logo {
+  display: block;
+  height: var(--logo-height);
+  width: auto;
+  margin: 0 calc(var(--logo-height) * -0.299) calc(var(--logo-height) * -0.045) 0;
 }
 
 .up-mark-uni {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.78);
 }
 
 .up-mark.compact {
-  padding: 12px 14px;
+  --logo-height: 40px;
+  padding: 14px 14px 12px;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-.up-mark.compact .up-mark-name {
-  font-size: 17px;
-}
-
-.up-mark.compact .up-mark-sub {
-  font-size: 10px;
-}
-
 .up-mark.compact .up-mark-uni {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 11px;
 }
 
