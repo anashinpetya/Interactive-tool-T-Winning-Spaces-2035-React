@@ -15,14 +15,16 @@ So one merged layer can show any remote-working level from 0 % to 47.3 %:
     s1_s2 file  ->  "s1": change at S1 (0 %)     relative to S2
     s2_s3 file  ->  "s3": change at S3 (47.3 %)  relative to S2
 
-How the union is done
+How the union is done (features are matched by geometry, not by ID)
   * Grid maps: geopandas overlay(how="union") of the two grids. The 250 m cells
-    coincide, so every output feature is one grid cell; a cell present in only
-    one file gets no value (null) for the other scenario.
+    coincide, so every output feature is one grid cell.
   * Traffic maps: the two road networks are cut into different pieces, so both
     are noded together (shapely union_all), every resulting piece takes the
     values of the segment of each file it lies on, and pieces with the same
     pair of source segments are merged back into one feature.
+  A feature present in only one file gets 0 absolute and 0 % change for the
+  other scenario (unchanged from today), so both scenarios cover the same
+  features. Rows without geometry are skipped.
 
 Output: public/data/<layer>.json
 
@@ -38,8 +40,8 @@ Output: public/data/<layer>.json
       "geometry": [[part, ...], ...]
     }
 
-null means "no data" (feature missing from that file, or a percentage whose
-S2 value is 0). A line "part" is a flat [lon, lat, lon, lat, ...] array; a
+null means "no data" (a percentage whose S2 value is 0 while the absolute
+change is not, or an S2 value missing from both files). A line "part" is a flat [lon, lat, lon, lat, ...] array; a
 polygon part is a list of such rings. Coordinates are WGS84, 6 decimals.
 """
 
@@ -107,6 +109,10 @@ def read(rel_path: str) -> gpd.GeoDataFrame:
     gdf = gpd.read_file(DATASETS_DIR / rel_path)
     if gdf.crs is None:
         raise ValueError(f"{rel_path} has no CRS")
+    no_geometry = gdf.geometry.isna() | gdf.geometry.is_empty
+    if no_geometry.any():
+        print(f"    note: skipping {int(no_geometry.sum())} row(s) without geometry in {rel_path}")
+        gdf = gdf[~no_geometry].reset_index(drop=True)
     return gdf.to_crs(METRIC_CRS)
 
 
@@ -231,9 +237,10 @@ def num(v, digits=6):
     return float(f"{v:.{digits}g}")
 
 
-def pick(side: pd.DataFrame, idx: np.ndarray, column: str):
+def pick(side: pd.DataFrame, idx: np.ndarray, column: str, missing=None):
+    """Values of `column` for every output feature; `missing` where the feature is not in this file (idx -1)."""
     values = side[column].values
-    return [num(values[i]) if i >= 0 else None for i in idx]
+    return [num(values[i]) if i >= 0 else missing for i in idx]
 
 
 def nice_ceiling(x: float) -> float:
@@ -288,8 +295,9 @@ def build(layer: str, cfg: dict) -> Path:
         "unit": cfg["unit"],
         "bounds": [round(v, 5) for v in out_geoms.total_bounds],
         "base": base,
-        "s1": {"abs": pick(side_a, ia, "abs"), "pct": pick(side_a, ia, "pct")},
-        "s3": {"abs": pick(side_b, ib, "abs"), "pct": pick(side_b, ib, "pct")},
+        # a feature missing from one file is unchanged in that scenario: 0 absolute, 0 % change
+        "s1": {"abs": pick(side_a, ia, "abs", 0), "pct": pick(side_a, ia, "pct", 0)},
+        "s3": {"abs": pick(side_b, ib, "abs", 0), "pct": pick(side_b, ib, "pct", 0)},
         "scale": {"abs": scale_limit(side_a["abs"], side_b["abs"]), "pct": PCT_SCALE},
         "geometry": [encode_geometry(g) for g in out_geoms],
     }
@@ -298,8 +306,8 @@ def build(layer: str, cfg: dict) -> Path:
     only_a = int(((ia >= 0) & (ib < 0)).sum())
     only_b = int(((ia < 0) & (ib >= 0)).sum())
     print(
-        f"    {len(geoms)} features (in both files: {len(geoms) - only_a - only_b}, only S1-S2: {only_a}, "
-        f"only S2-S3: {only_b}); scale ±{payload['scale']['abs']} {cfg['unit']} / ±{payload['scale']['pct'] * 100:g} %"
+        f"    {len(geoms)} features (in both files: {len(geoms) - only_a - only_b}, only S1-S2: {only_a} -> S3 set to 0, "
+        f"only S2-S3: {only_b} -> S1 set to 0); scale ±{payload['scale']['abs']} {cfg['unit']} / ±{payload['scale']['pct'] * 100:g} %"
     )
     return out
 
