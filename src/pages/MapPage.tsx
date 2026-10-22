@@ -98,7 +98,10 @@ export function MapPage({ page }: { page: MapPageConfig }) {
       <header className="page-header">
         <p className="eyebrow">{page.group}</p>
         <h1>{page.title}</h1>
-        <p className="lede">{page.description}</p>
+        <p className="lede">
+          {page.description}
+          {page.note && ` ${page.note}`}
+        </p>
       </header>
 
       <section className="panel controls" aria-label="Map controls">

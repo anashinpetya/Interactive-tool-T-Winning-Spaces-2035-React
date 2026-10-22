@@ -1,8 +1,11 @@
 import { GROUP_URL } from "../config/credits";
 
+// White version of the group's logo, for dark backgrounds
+const LOGO = `${import.meta.env.BASE_URL}images/dark/urban_physics_logo.webp`;
+
 /**
- * Text logo of the Urban Physics Research Group (the group has no logo):
- * bold capitals on Tampere University violet, linking to the group's page.
+ * The Urban Physics Research Group's logo on Tampere University violet,
+ * linking to the group's page.
  */
 export function UrbanPhysicsMark({ compact = false }: { compact?: boolean }) {
   return (
@@ -13,12 +16,8 @@ export function UrbanPhysicsMark({ compact = false }: { compact?: boolean }) {
       rel="noopener noreferrer"
       aria-label="Urban Physics Research Group, Tampere University (opens in a new tab)"
     >
-      <span className="up-mark-name">URBAN PHYSICS</span>
-      <span className="up-mark-sub">RESEARCH GROUP</span>
-      <span className="up-mark-uni">
-        Tampere University
-        <ExternalIcon />
-      </span>
+      <img className="up-mark-logo" src={LOGO} alt="" />
+      <span className="up-mark-uni">{compact ? "Tampere University" : "Research group · Tampere University"}</span>
     </a>
   );
 }

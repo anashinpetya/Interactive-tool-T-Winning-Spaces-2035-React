@@ -31,7 +31,7 @@
 
   --radius: 14px;
   --radius-sm: 10px;
-  --sidebar-width: 264px;
+  --sidebar-width: 240px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -113,8 +113,8 @@ button {
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 8px 22px;
+  gap: 10px;
+  padding: 4px 4px 22px; /* keeps "T-Winning Spaces 2035" on one line in the 240 px sidebar */
 }
 
 .brand-mark {
@@ -125,7 +125,7 @@ button {
 }
 
 .brand-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
   line-height: 1.25;
 }
@@ -195,12 +195,15 @@ button {
   color: var(--text-2);
 }
 
-/* Urban Physics Research Group text logo: bold capitals on Tampere University violet */
+/* Urban Physics Research Group logo on Tampere University violet */
 .up-mark {
+  --logo-height: 58px;
   display: inline-flex;
   flex-direction: column;
+  align-items: center; /* logo and caption centred in the box */
   justify-content: center;
-  padding: 14px 20px;
+  padding: 12px 28px 11px;
+  text-align: center;
   border-radius: 14px;
   background: var(--tuni);
   color: #fff;
@@ -217,46 +220,33 @@ button {
   transform: translateY(-2px);
 }
 
-.up-mark-name {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-}
-
-.up-mark-sub {
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+/* the logo image has empty space on its right (211 of 2000 px) and bottom (32 of 705 px); the negative
+   margins keep that transparent space out of the layout so the logo sits evenly in the chip */
+.up-mark-logo {
+  display: block;
+  height: var(--logo-height);
+  width: auto;
+  margin: 0 calc(var(--logo-height) * -0.299) calc(var(--logo-height) * -0.045) 0;
 }
 
 .up-mark-uni {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.78);
 }
 
+/* sidebar box: a bigger logo and caption in the same 85 px tall box (less padding instead) */
 .up-mark.compact {
-  padding: 12px 14px;
+  --logo-height: 47px;
+  padding: 10px 12px 9px;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-.up-mark.compact .up-mark-name {
-  font-size: 17px;
-}
-
-.up-mark.compact .up-mark-sub {
-  font-size: 10px;
-}
-
 .up-mark.compact .up-mark-uni {
   margin-top: 6px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .external-icon {
@@ -819,7 +809,7 @@ strong {
 /* ------------------------------------------------------------ emissions & health */
 
 .impact-summary {
-  margin: 16px 0;
+  margin: 28px 0 16px;
 }
 
 .impact-summary-heading {
@@ -904,13 +894,13 @@ strong {
 }
 
 .impact-figure figcaption h2 {
-  margin: 0 0 2px;
+  margin: 0 0 8px;
   font-size: 17px;
 }
 
 .impact-figure figcaption p {
   max-width: 760px;
-  margin: 0 0 10px;
+  margin: 0 0 22px;
   font-size: 13px;
   line-height: 1.5;
   color: var(--muted);
@@ -1005,23 +995,11 @@ strong {
 /* ------------------------------------------------------------ home */
 
 .page.home {
-  overflow-x: clip; /* the hero glow must not make phones scroll sideways */
+  overflow-x: clip; /* the partner logos' glow must not make phones scroll sideways */
 }
 
 .hero {
-  position: relative;
-  padding: 40px 0 56px;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: auto -60px -40px auto;
-  width: 520px;
-  height: 360px;
-  background: radial-gradient(closest-side, rgba(144, 133, 233, 0.16), transparent);
-  pointer-events: none;
-  z-index: -1;
+  padding: 40px 0 28px;
 }
 
 .hero .eyebrow {
@@ -1047,7 +1025,7 @@ strong {
   flex-wrap: wrap;
   align-items: stretch;
   gap: 16px;
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 .brand-card {
@@ -1055,7 +1033,7 @@ strong {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 14px 22px 14px 18px;
+  padding: 14px 32px 14px 26px;
   border: 1px solid color-mix(in oklab, var(--glow) 45%, transparent);
   border-radius: 14px;
   background:
@@ -1215,9 +1193,11 @@ strong {
   color: var(--text-2);
 }
 
+/* the text with the paper beside it */
 .about {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-areas: "body paper";
   gap: 24px 40px;
   margin: 0 0 44px;
   padding: 30px 32px;
@@ -1241,22 +1221,35 @@ strong {
   color: var(--muted);
 }
 
+.about-body {
+  grid-area: body;
+}
+
+.about-body a {
+  white-space: nowrap; /* don't break the web address at its hyphen */
+}
+
+/* authors, before "Partners & funding" */
 .credits {
+  margin: 0 0 44px;
+}
+
+.credits dl {
   display: grid;
-  align-content: start;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 14px;
   margin: 0;
 }
 
 .credit {
-  padding: 16px 18px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: rgba(10, 13, 19, 0.55);
+  padding: 26px 30px;
+  border: 1px solid rgba(144, 133, 233, 0.4);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(144, 133, 233, 0.1), var(--panel) 75%);
 }
 
 .credit dt {
-  margin-bottom: 4px;
+  margin-bottom: 12px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1267,12 +1260,12 @@ strong {
 .credit dd {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   margin: 0;
 }
 
 .credit-names {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 650;
   line-height: 1.4;
   color: var(--text);
@@ -1281,6 +1274,61 @@ strong {
 .credit-note {
   font-size: 13px;
   color: var(--muted);
+}
+
+.paper-card {
+  grid-area: paper;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid rgba(144, 133, 233, 0.6);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(160deg, rgba(144, 133, 233, 0.24), rgba(144, 133, 233, 0.06) 65%), var(--panel-2);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: 0 8px 26px rgba(144, 133, 233, 0.18);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.paper-card:hover {
+  border-color: var(--accent-strong);
+  transform: translateY(-2px);
+}
+
+.paper-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.paper-title {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.paper-meta {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.paper-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto; /* the card is as tall as the text beside it; the link sits at its bottom */
+  padding-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  overflow-wrap: anywhere;
 }
 
 .section-eyebrow {
@@ -1491,7 +1539,7 @@ strong {
   }
 
   .hero {
-    padding: 20px 0 40px;
+    padding: 20px 0 24px;
   }
 
   .hero h1 {
@@ -1505,7 +1553,7 @@ strong {
 
   .hero-brands {
     flex-direction: column;
-    margin-top: 28px;
+    margin-top: 24px;
   }
 
   .hero-brands {
@@ -1532,7 +1580,18 @@ strong {
   }
 
   .about {
+    grid-template-areas:
+      "body"
+      "paper";
     padding: 22px 20px;
+  }
+
+  .credits dl {
+    grid-template-columns: 1fr;
+  }
+
+  .credit {
+    padding: 22px 22px;
   }
 
   .impact-tile-value {

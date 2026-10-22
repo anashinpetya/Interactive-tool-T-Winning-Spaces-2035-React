@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { ExternalIcon, UrbanPhysicsMark } from "../components/UrbanPhysicsMark";
-import { GROUP_URL, PROJECT_URL, RESEARCH_AUTHORS, TOOL_AUTHOR } from "../config/credits";
+import { GROUP_URL, PAPER, PROJECT_URL, RESEARCH_AUTHORS, TOOL_AUTHOR } from "../config/credits";
 import { IMPACTS_PAGE } from "../config/impacts";
 import { MAP_PAGES } from "../config/mapPages";
 import { SCENARIOS } from "../config/scenarios";
@@ -22,8 +22,13 @@ const LOGOS = [
   { file: "logo2.png", alt: "Research Council of Finland", href: "https://www.aka.fi/en/", glow: "#2fa8ff", glow2: "#1f6fff" },
 ];
 
+// Card titles that differ from the scenario names used on the slider
+const SCENARIO_TITLE: Record<string, string> = {
+  S1: "Everyone works on-site",
+};
+
 const SCENARIO_TEXT: Record<string, string> = {
-  S1: "Nobody works remotely.",
+  S1: "Nobody works remotely, even where the job would allow it.",
   S2: "Today's share of remote workers — the baseline that every result is compared with.",
   S3: "Everyone whose job allows it works remotely.",
 };
@@ -33,12 +38,8 @@ export function HomePage() {
     <article className="page home">
       <header className="hero">
         <p className="eyebrow">T-Winning Spaces 2035 · Work Package 3</p>
-        <h1>Remote work, emissions and health in the Helsinki capital region</h1>
-        <p className="lede">
-          Explore potential environmental and health impacts of different remote-working scenarios. Move the slider
-          on any page to set the share of remote workers; the results between the three base scenarios are
-          interpolated.
-        </p>
+        <h1>Carbon emission and health impacts of remote working in the Helsinki capital region</h1>
+        <p className="lede">Explore potential environmental and health impacts of different remote-working scenarios.</p>
 
         <div className="hero-brands">
           <a
@@ -51,10 +52,7 @@ export function HomePage() {
             <img src={images + "T-winning_logo_green.png"} alt="" />
             <span className="brand-card-text">
               <span className="brand-card-kicker">Project website</span>
-              <span className="brand-card-link">
-                t-winning-spaces2035.com
-                <ExternalIcon />
-              </span>
+              <span className="brand-card-link">t-winning-spaces2035.com</span>
             </span>
           </a>
           <UrbanPhysicsMark />
@@ -80,7 +78,70 @@ export function HomePage() {
           </p>
         </div>
 
-        <dl className="credits">
+        <a
+          className="paper-card"
+          href={`https://doi.org/${PAPER.doi}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Project paper: ${PAPER.title} (opens in a new tab)`}
+        >
+          <span className="paper-kicker">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M6 3h8l4 4v14H6zM14 3v4h4M9 12h6M9 16h6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            </svg>
+            Project paper
+          </span>
+          <span className="paper-title">{PAPER.title}</span>
+          <span className="paper-meta">{PAPER.authors}</span>
+          <span className="paper-meta">
+            <em>{PAPER.journal}</em>, {PAPER.year}
+          </span>
+          <span className="paper-link">
+            doi.org/{PAPER.doi}
+            <ExternalIcon />
+          </span>
+        </a>
+      </section>
+
+      <section className="scenario-cards" aria-label="Scenarios">
+        {SCENARIOS.map((s) => (
+          <div key={s.id} className={`scenario-card ${s.id.toLowerCase()}`}>
+            <div className="scenario-card-top">
+              <span className="scenario-card-id">
+                Scenario {s.id.slice(1)} – {s.id}
+              </span>
+              <span className="scenario-card-pct">{s.percent} %</span>
+            </div>
+            <div className="scenario-card-name">{SCENARIO_TITLE[s.id] ?? s.name}</div>
+            <p>{SCENARIO_TEXT[s.id]}</p>
+          </div>
+        ))}
+      </section>
+
+      <section aria-labelledby="explore-heading">
+        <h2 id="explore-heading">What you can explore</h2>
+        <div className="explore-grid">
+          {/* same order as the sidebar */}
+          {[IMPACTS_PAGE, ...MAP_PAGES].map((p) => (
+            <Link key={p.path} to={p.path} className="explore-card">
+              <span className="explore-card-group">{p.group}</span>
+              <span className="explore-card-title">{p.navLabel}</span>
+              <span className="explore-card-text">{p.description}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="credits" aria-labelledby="credits-heading">
+        <h2 id="credits-heading">Authors</h2>
+        <dl>
           <div className="credit">
             <dt>Author of the online tool</dt>
             <dd>
@@ -101,32 +162,6 @@ export function HomePage() {
             </dd>
           </div>
         </dl>
-      </section>
-
-      <section className="scenario-cards" aria-label="Scenarios">
-        {SCENARIOS.map((s) => (
-          <div key={s.id} className={`scenario-card ${s.id.toLowerCase()}`}>
-            <div className="scenario-card-top">
-              <span className="scenario-card-id">{s.id}</span>
-              <span className="scenario-card-pct">{s.percent} %</span>
-            </div>
-            <div className="scenario-card-name">{s.name}</div>
-            <p>{SCENARIO_TEXT[s.id]}</p>
-          </div>
-        ))}
-      </section>
-
-      <section aria-labelledby="explore-heading">
-        <h2 id="explore-heading">What you can explore</h2>
-        <div className="explore-grid">
-          {[...MAP_PAGES, IMPACTS_PAGE].map((p) => (
-            <Link key={p.path} to={p.path} className="explore-card">
-              <span className="explore-card-group">{p.group}</span>
-              <span className="explore-card-title">{p.navLabel}</span>
-              <span className="explore-card-text">{p.description}</span>
-            </Link>
-          ))}
-        </div>
       </section>
 
       <section aria-labelledby="partners-heading">

@@ -83,7 +83,7 @@ export function LayerMap({ data, colors, opacity, renderTooltip, legend }: Layer
               getPath: (d) => d.path!,
               getColor: (d) => colors[d.row] ?? TRANSPARENT,
               widthUnits: "pixels",
-              getWidth: 1.6,
+              getWidth: 1.4,
               widthMinPixels: 1,
               capRounded: true,
               jointRounded: true,

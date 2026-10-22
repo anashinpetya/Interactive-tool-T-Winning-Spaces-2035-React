@@ -7,7 +7,10 @@ export interface MapPageConfig {
   /** File name in public/data (without .json), built by scripts/prepare_data.py */
   dataset: string;
   title: string;
+  /** Shown on the map page and on its card on the home page */
   description: string;
+  /** Extra sentence shown only on the map page, after the description */
+  note?: string;
   /** What is measured, as written inside a sentence ("Change in CO₂ emissions") */
   quantityInSentence: string;
   /** Unit of the absolute change */
@@ -36,6 +39,7 @@ export const MAP_PAGES: MapPageConfig[] = [
     title: "CO₂ emissions",
     description:
       "Change in daily transport-related CO₂ emissions in each 250 m grid cell at the selected share of remote workers, compared with today.",
+    note: "CO₂ is calculated only for origin cells: the emissions of each trip are counted in the grid cell where the trip starts.",
     quantityInSentence: "CO₂ emissions",
     unit: "kg",
     legendUnit: "kg",

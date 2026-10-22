@@ -96,5 +96,5 @@ export const IMPACTS_PAGE = {
   intro:
     "More remote working means less commuting. In the study, this lowers the region's transport-related CO₂ emissions but increases the number of premature deaths compared with today. One slider sets the share of remote workers for both results.",
   description:
-    "One slider, two results: how the share of remote workers changes the region's transport CO₂ emissions and the number of premature deaths.",
+    "The region's daily transport CO₂ emissions and premature deaths at the selected share of remote workers.",
 };
